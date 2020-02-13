@@ -1,3 +1,5 @@
 ^mediation\.Rproj$
 ^\.Rproj\.user$
 analysis
+^CODE_OF_CONDUCT\.md$
+^README\.Rmd$
