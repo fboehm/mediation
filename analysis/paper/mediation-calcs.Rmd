@@ -1,0 +1,34 @@
+---
+title: "Mediating Attie traits"
+author: "Frederick J. Boehm"
+date: "2/12/2020"
+output: html_document
+params:
+  lastmod: !r lubridate::now()
+---
+
+```{r, eval = TRUE}
+library(knitr)
+knit_hooks$set(inline = boehm::inline_datetime)
+knit_hooks$get("inline")
+```
+
+`r params$lastmod`.
+
+
+Now, without using yaml header
+
+`r lubridate::now()`.
+
+```{r}
+knit_hooks$get("inline")
+params$lastmod
+```
+
+
+
+
+```{r}
+lubridate::now()
+```
+
