@@ -4,31 +4,41 @@ author: "Frederick J. Boehm"
 date: "2/12/2020"
 output: html_document
 params:
-  lastmod: !r lubridate::now()
+  lastmod: !r paste0(lubridate::now(), " (", Sys.timezone(), ")")
 ---
 
-```{r, eval = TRUE}
-library(knitr)
-knit_hooks$set(inline = boehm::inline_datetime)
-knit_hooks$get("inline")
-```
-
-`r params$lastmod`.
+Last modified: `r params$lastmod`.
 
 
-Now, without using yaml header
-
-`r lubridate::now()`.
+## Download Attie data
 
 ```{r}
-knit_hooks$get("inline")
-params$lastmod
+fn <- "../data/raw_data/attie.RData"
+if (!file.exists(fn)) download.file(url = "https://datadryad.org/stash/downloads/file_stream/63306", destfile = fn)
 ```
-
-
-
 
 ```{r}
-lubridate::now()
+genofn <- "../data/derived_data/attie_geno.rds"
+kinsfn <- "../data/derived_data/attie_kinship.rds"
+mapfn <- "../data/derived_data/attie_map.rds"
+exprfn <- "../data/derived_data/attie_expr.rds"
+covafn <- "../data/derived_data/attie_covar.rds"
+if (!file.exists(genofn)){
+  load(fn)
+  saveRDS(genoprobs, genofn)
+  saveRDS(K, kinsfn)
+  saveRDS(map, mapfn)
+  saveRDS(dataset.islet.rnaseq$expr, exprfn)
+  saveRDS(dataset.islet.rnaseq$covar, covafn)
+}
+geno <- readRDS(genofn)
+kinship <- readRDS(kinsfn)
+map <- readRDS(mapfn)
+expr <- readRDS(exprfn)
+covar <- readRDS(covafn)
+
 ```
+
+
+
 
