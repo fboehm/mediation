@@ -24,7 +24,7 @@ We'll use linear regression methods with the only variance component being that 
 ## Download Attie data
 
 ```{r}
-fn <- "../data/raw_data/attie.RData"
+fn <- "../data/raw_data/attie.Rdata"
 if (!file.exists(fn)) download.file(url = "https://datadryad.org/stash/downloads/file_stream/63306", destfile = fn)
 ```
 
@@ -34,6 +34,8 @@ kinsfn <- "../data/derived_data/attie_kinship.rds"
 mapfn <- "../data/derived_data/attie_map.rds"
 exprfn <- "../data/derived_data/attie_expr.rds"
 covafn <- "../data/derived_data/attie_covar.rds"
+peakfn <- "../data/derived_data/attie_peaks.rds"
+annofn <- "../data/derived_data/attie_annots.rds"
 if (!file.exists(genofn)){
   load(fn)
   saveRDS(genoprobs, genofn)
@@ -41,13 +43,16 @@ if (!file.exists(genofn)){
   saveRDS(map, mapfn)
   saveRDS(dataset.islet.rnaseq$expr, exprfn)
   saveRDS(dataset.islet.rnaseq$covar, covafn)
+  saveRDS(dataset.islet.rnaseq$lod.peaks, peakfn)
+  saveRDS(dataset.islet.rnaseq$annots, annofn)
 }
 geno <- readRDS(genofn)
 kinship <- readRDS(kinsfn)
 map <- readRDS(mapfn)
 expr <- readRDS(exprfn)
 covar <- readRDS(covafn)
-
+peaks <- readRDS(peakfn)
+annots <- readRDS(annofn)
 ```
 
 
@@ -60,6 +65,60 @@ The coefficient esimates, and RSS?? It seems that we should save all of the outp
 First, choose a superstrong peak.
 
 For every trait-mediator-peak triple, we need to fit 4 models: with and without genotypes, with and without putative mediator, for a single trait peaks. However, we should also fit the models that have the outcome variable being the mediator. So, actually, we need more than four models per triple.
+
+```{r wrangling}
+library(magrittr)
+pa <- peaks %>%
+  dplyr::left_join(annots, by = c("annot.id" = "gene_id")) %>%
+  dplyr::rename(peak_chr = chrom, 
+                peak_pos = pos,
+                trait_id = annot.id) %>%
+  dplyr::mutate(local = peak_chr == chr) %>%
+  dplyr::arrange(desc(lod))
+pa  
+```
+
+We next seek trans traits that might be interesting (not pseudogenes)
+
+```{r find_nonlocal_traits}
+pa %>%
+  dplyr::filter(!local) #Obox6 might be cool!!
+# its DNA is on Chr 7 but QTL peak is on 17!
+  # Also, Akr1e1: peak on 4, DNA on Chr 13
+```
+
+```{r, obox6}
+# does its QTL peak overlap with other peaks??
+pa %>% 
+  dplyr::filter(peak_chr == 17)
+
+```
+
+We see that there are no cis peaks that are near Obox6's peak AND higher than Obox6's peak.
+
+```{r Akr1e1}
+cis_trait_ids <- pa %>%
+  dplyr::filter(peak_chr == 4, peak_pos > 140, local, lod > 90) %>%
+  dplyr::select(trait_id) %>% unlist()
+trans_marker <- pa %>%
+  dplyr::filter(symbol == "Akr1e1", peak_chr == 4) %>%
+  dplyr::select(marker.id) %>% unlist()
+trans_trait_id <- pa %>%
+  dplyr::filter(symbol == "Akr1e1", peak_chr == 4) %>%
+  dplyr::select(trait_id) %>% unlist()
+```
+
+```{r}
+dimnames(geno$`4`)
+```
+
+The question, then, is whether Akr1e1 is mediated by any of the nearby cis traits.
+
+```{r}
+geno$`4`[ , , which(dimnames(geno$`4`)[[3]] == trans_marker)] -> gp
+trans_tr <- expr[ , colnames(expr) %in% trans_trait_id, drop = FALSE]
+cis_tr <- expr[, colnames(expr) %in% cis_trait_ids, drop = FALSE]
+```
 
 ## Questions
 
