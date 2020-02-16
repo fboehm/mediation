@@ -1,5 +1,5 @@
 ---
-title: "Mediating Attie traits"
+title: "Mediating traits in Attie DO data"
 author: "Frederick J. Boehm"
 date: "2/12/2020"
 output: html_document
@@ -8,6 +8,17 @@ params:
 ---
 
 Last modified: `r params$lastmod`.
+
+## Overview
+
+We'd like to clarify mediation methods and explore them in the context of the Attie DO data. Basically, I want to examine methods for multivariate mediation analysis with the "difference" method and compare them with the methods of @chick2016defining.
+
+It seems that the methods that vanderWeele and others use differ in important ways from the LOD difference approach that @chick2016defining use.
+
+I want to ensure that I understand these differences and think about which I should use for future analyses.
+
+We'll use linear regression methods with the only variance component being that of the random error term -- so, no "polygenic random effect" related to the kinship matrix.
+
 
 
 ## Download Attie data
@@ -40,5 +51,38 @@ covar <- readRDS(covafn)
 ```
 
 
+## Read the peaks annotations and fit linear models at the peaks.
 
+What do we want to record for each model fit? 
+
+The coefficient esimates, and RSS?? It seems that we should save all of the output from calls to `lm`.
+
+First, choose a superstrong peak.
+
+For every trait-mediator-peak triple, we need to fit 4 models: with and without genotypes, with and without putative mediator, for a single trait peaks. However, we should also fit the models that have the outcome variable being the mediator. So, actually, we need more than four models per triple.
+
+## Questions
+
+1. What are the meanings of direct and indirect effects? Are they meaningful in systems genetics studies?
+
+1. Which of the causal inference (absence of confounding) assumptions holds in the systems genetics setting? I believe that Vanderweele's text outlines four such assumptions. Check each of them.
+
+
+
+1. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## References
 
